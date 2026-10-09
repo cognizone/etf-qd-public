@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ETF Qualifications Database — public vocabularies</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 24px; color: #333; }
+        main { max-width: 960px; margin: 0 auto; }
+        h1, h2, a { color: #0056b3; }
+        li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>ETF Qualifications Database</h1>
+    <p>Public controlled vocabularies for ETF QD. The common QCP data model remains shared.</p>
+    <h2>Controlled vocabularies</h2>
+    <ul>
+        <li><a href="model/internal/virtualspace-nqfs">Selectable qualification frameworks</a>. Each framework concept references its level scheme.</li>
+        <li><a href="model/eqf-nqf-levels">European Qualifications Framework levels</a>. A lossless Turtle serialization of the complete source RDF graph, including all eight levels and label-resource metadata.</li>
+    </ul>
+    <p>The RDF/XML and Turtle EQF files contain equivalent RDF graphs. QCP selects these vocabularies and prepares a separate, smaller runtime lookup view during the ETF product build.</p>
+</main>
+</body>
+</html>
