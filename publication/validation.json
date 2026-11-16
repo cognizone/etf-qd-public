@@ -1,0 +1,7 @@
+{
+  "profile": "docs/model/etf-profile.ttl",
+  "vocabularies": {
+    "http://data.europa.eu/snb/eqf/25831c2": "docs/model/eqf-nqf-levels"
+  },
+  "common-revision": "2a76bd4800550787f339798fdcbf5fee932aa7b4"
+}
