@@ -9,28 +9,15 @@ permissions:
 jobs:
   validation:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          submodules: true
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-      - name: Read reviewed common-model revision
-        id: common
-        run: python -c 'import json; print("revision=" + json.load(open("publication/validation.json"))["common-revision"])' >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v4
-        with:
-          repository: cognizone/acqf-qcp-public
-          ref: ${{ steps.common.outputs.revision }}
-          path: .common-source
-      - run: python -m pip install -r .common-source/publication/requirements.txt
-      - name: Install pinned Jena validator
-        run: |
-          curl -fsSL --retry 3 https://archive.apache.org/dist/jena/binaries/apache-jena-5.6.0.tar.gz -o "$RUNNER_TEMP/jena.tar.gz"
-          tar -xzf "$RUNNER_TEMP/jena.tar.gz" -C "$RUNNER_TEMP"
-          echo "JENA_HOME=$RUNNER_TEMP/apache-jena-5.6.0" >> "$GITHUB_ENV"
-      - name: Check lossless EQF publication and rebuilt validation artifact
-        run: ./gradlew check -PcommonRepo=.common-source -PjenaHome="$JENA_HOME"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check vocabularies, export and standalone SHACL validation
+        run: ./gradlew check

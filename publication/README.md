@@ -1,46 +1,60 @@
 # ETF dev publication
 
-Maintain `docs/model/etf-profile.ttl` for ETF's bindings. The NQF shape resolves this
-repo's existing framework catalogue and retains the official EQF scheme and member IRIs.
-The common structural rules and shared CV bindings are maintained in ACQF public.
-`publication/validation.json` pins their reviewed commit; the same pin selects the
-shared builder and all shared vocabulary sources. Nothing follows ACQF production.
-
-Prerequisites: Python 3.12, Java 21, Apache Jena 5.6.0, and a local clone of
-`https://github.com/cognizone/acqf-qcp-public.git` containing the pinned commit.
+With Java 21 installed, initialize the pinned ACQF dependency and run:
 
 ```
-python3 -m pip install -r ../acqf-qcp-public/publication/requirements.txt
-./gradlew buildValidation -PcommonRepo=../acqf-qcp-public
-./gradlew check -PcommonRepo=../acqf-qcp-public -PjenaHome="$JENA_HOME"
+git submodule update --init
+./gradlew buildValidation
+./gradlew check
 ```
 
-The Python wrapper also works directly (no Gradle needed for validation publication):
+Gradle resolves Jena and JUnit from Maven Central. No Python, separate Jena installation
+or external RDF command is required. Both publishers use the Java sources and Gradle
+configuration maintained in `common/`, an ACQF public Git submodule. Its gitlink pins
+common rules, shared vocabularies, builder and tests together. Changes in ACQF dev or
+production cannot change ETF until this pin is explicitly updated.
+
+Maintain `docs/model/etf-profile.ttl` for ETF's NQF bindings. It follows this repo's
+catalogue and retains the official EQF IRIs. `publication/validation.json` maps those
+IRIs to the existing local documents. Commit the generated complete
+`docs/model/exchange-model.ttl` alongside any source changes. Do not edit it directly.
+It contains resolved membership constraints and needs no QCP preprocessing.
+
+GitHub Actions run `./gradlew check` on dev pushes and PRs targeting dev. Checks compare
+the rebuilt and committed RDF graphs, then exercise all eight EQF levels, invalid
+values, ACQF-level rejection and duplicate notation with standard Jena SHACL. The
+workflow does not commit files or deploy a site. Main and site publication settings
+are unchanged.
+
+`docs/model/eqf-nqf-levels` is the single reviewed, published EQF document, including
+all source metadata. A second RDF/XML copy is unnecessary. `publication/eqf.properties`
+records the original release URL, format and SHA-256 checksum. To refresh that reviewed
+release explicitly:
 
 ```
-python3 tools/build-exchange-model.py --common-repo ../acqf-qcp-public
-python3 tools/build-exchange-model.py --common-repo ../acqf-qcp-public --check --test
+./gradlew refreshEqf
+./gradlew buildValidation check
 ```
 
-Commit `docs/model/exchange-model.ttl` with its profile or vocabulary changes.
-This generated, complete graph is the ETF validation entrypoint. It contains standard
-`sh:in` constraints and the common SHACL-SPARQL constraints; no QCP preprocessing or
-network resolution is needed to validate data. Do not edit the generated file directly.
-The build rejects missing or empty membership. It reads the pinned dependency's Git
-objects, so local modifications to that checkout do not change the result.
+Refresh checks the source checksum, converts the entire graph and verifies RDF graph
+equivalence before replacing the public Turtle. An unreviewed upstream change fails
+without changing the published file. Downloaded/conversion intermediates belong in
+ignored `build/`, not `docs/`. Routine checks are offline after Gradle dependencies
+have been cached. To adopt another release, review its source and update the recipe.
 
-GitHub Actions run on dev pushes and PRs targeting dev. CI checks the committed EQF
-export against its reviewed original distribution and rebuilds/checks the validation
-artifact, then tests all eight EQF levels, invalid values, ACQF-level rejection and the
-common duplicate-notation rule with Jena. CI does not commit generated files or deploy
-the site. Site publication settings and the main branch are unchanged.
+Repository artifacts have distinct roles:
 
-`eqf.properties` identifies the official pinned full SKOS-AP-EU release. `exportEqf`
-converts the reviewed RDF/XML snapshot to Turtle losslessly; `refreshEqf` explicitly
-downloads that pinned release first. `checkEqf` compares source and public RDF graphs.
-The full source distribution remains intact, including its original IRIs and metadata.
-The validation export only selects its `skos:inScheme` members for the bound shape.
+| Artifact | Purpose |
+| --- | --- |
+| `docs/CNAME`, `docs/index.html` | Existing site hostname and landing page |
+| `docs/model/internal/virtualspace-nqfs` | Framework catalogue used by QCP and the profile |
+| `docs/model/eqf-nqf-levels` | Reviewed full EQF vocabulary and publication input |
+| `docs/model/etf-profile.ttl` | Maintained ETF-specific validation policy |
+| `docs/model/exchange-model.ttl` | Generated standalone validation entrypoint |
+| `common`, `.gitmodules` | Standard Git pin for the shared implementation and rules |
+| `publication/validation.json`, `publication/eqf.properties` | Bindings and upstream provenance |
+| Gradle build, wrapper, workflow | Reproducible JVM build and automated checks |
 
-To adopt a common-model update, fetch/review the ACQF dev commit, change
-`common-revision`, regenerate and run `check`. A vocabulary update must also update
-QCP's packaged lookups so that UI choices and accepted validation values agree.
+To adopt common changes, fetch and check out a reviewed ACQF commit inside `common/`,
+regenerate and run `check`, then commit the updated gitlink and export in ETF. Update
+QCP's packaged lookups whenever accepted vocabulary membership changes.
